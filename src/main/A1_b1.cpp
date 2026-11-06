@@ -18,7 +18,48 @@ namespace aim::b1 {
 
 
 // BEGIN IMPLEMENTATION
-bool parse_i32(const std::string& text, int& output) { throw std::runtime_error("TODO"); }
+// aim-cpp-cw
+bool parse_i32(const std::string& text, int& output) {
+    constexpr long long kMaxPositive = 2147483647LL;
+    constexpr long long kMaxMagnitude = 2147483648LL;
+
+    std::size_t index = 0;
+    bool negative = false;
+    if (!text.empty() && (text[0] == '+' || text[0] == '-')) {
+        negative = text[0] == '-';
+        index = 1;
+    }
+    if (index >= text.size()) {
+        return false;
+    }
+
+    long long magnitude = 0;
+    for (; index < text.size(); ++index) {
+        const unsigned char c = static_cast<unsigned char>(text[index]);
+        if (c < '0' || c > '9') {
+            return false;
+        }
+        const long long digit = c - '0';
+        if (magnitude > (std::numeric_limits<long long>::max() - digit) / 10) {
+            return false;
+        }
+        magnitude = magnitude * 10 + digit;
+    }
+
+    if (negative) {
+        if (magnitude > kMaxMagnitude) {
+            return false;
+        }
+        output = magnitude == kMaxMagnitude ? -2147483647 - 1
+                                            : static_cast<int>(-magnitude);
+    } else {
+        if (magnitude > kMaxPositive) {
+            return false;
+        }
+        output = static_cast<int>(magnitude);
+    }
+    return true;
+}
 // END IMPLEMENTATION
 }
 
